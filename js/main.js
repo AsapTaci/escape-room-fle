@@ -1,3 +1,5 @@
+import { renderRoom1 } from './render-room1.js';
+
 function renderIntro(container) {
   container.innerHTML = '';
 
@@ -17,7 +19,7 @@ function renderIntro(container) {
   startBtn.className = 'btn';
   startBtn.textContent = 'Comincia';
   startBtn.addEventListener('click', () => {
-    console.log('Comincia clicked — room routing arrives in a later task');
+    renderRoom1(container, () => console.log('ingresso solved'));
   });
 
   const logo = document.createElement('img');
