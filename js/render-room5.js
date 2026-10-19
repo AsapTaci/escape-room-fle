@@ -1,0 +1,120 @@
+import { LIBRARY_FACTS, isLibraryMatchComplete } from './room5.mjs';
+import { collectLetter, saveState } from './state.mjs';
+import { renderLetterTray } from './ui.mjs';
+
+function shuffle(array) {
+  const a = [...array];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function renderRoom5(container, state, onSolved) {
+  container.innerHTML = '';
+
+  const labels = Object.keys(LIBRARY_FACTS);
+  const shuffledValues = shuffle(labels);
+  const pairs = {};
+  let selectedLabel = null;
+
+  const scene = document.createElement('div');
+  scene.className = 'scene';
+  scene.style.backgroundImage = "url('assets/sede-6.jpg')";
+
+  const title = document.createElement('h1');
+  title.className = 'poster-title';
+  title.textContent = 'Biblioteca';
+  const subtitle = document.createElement('p');
+  subtitle.className = 'poster-subtitle';
+  subtitle.textContent = 'Via della Traspontina, 15 — Roma';
+
+  const note = document.createElement('p');
+  note.style.maxWidth = '560px';
+  note.style.textAlign = 'center';
+  note.style.fontSize = '15px';
+  note.textContent = 'Hai lasciato la sede principale: la Biblioteca della Fondazione si trova in un altro palazzo, poco distante.';
+
+  const labelsRow = document.createElement('div');
+  labelsRow.style.display = 'flex';
+  labelsRow.style.gap = '16px';
+  labelsRow.style.flexWrap = 'wrap';
+  labelsRow.style.justifyContent = 'center';
+  labelsRow.style.maxWidth = '680px';
+
+  const valuesRow = document.createElement('div');
+  valuesRow.style.display = 'flex';
+  valuesRow.style.gap = '12px';
+  valuesRow.style.marginTop = '24px';
+
+  const error = document.createElement('div');
+  error.className = 'lock-widget__error';
+
+  const labelCards = {};
+
+  labels.forEach((label) => {
+    const card = document.createElement('div');
+    card.className = 'btn';
+    card.style.cursor = 'pointer';
+    card.textContent = label;
+
+    card.addEventListener('click', () => {
+      selectedLabel = label;
+      Object.values(labelCards).forEach((c) => (c.style.outline = ''));
+      card.style.outline = '3px solid var(--navy)';
+    });
+
+    labelCards[label] = card;
+    labelsRow.appendChild(card);
+  });
+
+  shuffledValues.forEach((valueOwner) => {
+    const valueCard = document.createElement('div');
+    valueCard.className = 'modal';
+    valueCard.style.cursor = 'pointer';
+    valueCard.style.padding = '14px 22px';
+    valueCard.style.fontWeight = '700';
+    valueCard.style.fontSize = '20px';
+    valueCard.textContent = LIBRARY_FACTS[valueOwner];
+
+    valueCard.addEventListener('click', () => {
+      if (!selectedLabel) return;
+      pairs[selectedLabel] = LIBRARY_FACTS[valueOwner];
+      valueCard.style.border = '2px solid var(--giallo)';
+      labelCards[selectedLabel].style.outline = '';
+      selectedLabel = null;
+    });
+
+    valuesRow.appendChild(valueCard);
+  });
+
+  const verifyBtn = document.createElement('button');
+  verifyBtn.className = 'btn';
+  verifyBtn.textContent = 'Verifica';
+  verifyBtn.addEventListener('click', () => {
+    if (isLibraryMatchComplete(pairs)) {
+      error.textContent = '';
+      const newState = collectLetter(state, 'biblioteca', 'G');
+      saveState(newState, localStorage);
+      renderLetterTray(newState.lettersCollected, trayEl);
+      onSolved(newState);
+    } else {
+      error.textContent = 'Qualche abbinamento non è giusto…';
+    }
+  });
+
+  const trayEl = document.createElement('div');
+
+  scene.appendChild(title);
+  scene.appendChild(subtitle);
+  scene.appendChild(note);
+  scene.appendChild(labelsRow);
+  scene.appendChild(valuesRow);
+  scene.appendChild(verifyBtn);
+  scene.appendChild(error);
+  container.appendChild(scene);
+  container.appendChild(trayEl);
+
+  renderLetterTray(state.lettersCollected, trayEl);
+}
