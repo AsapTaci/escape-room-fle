@@ -16,8 +16,7 @@ export function renderRoom4(container, state, onSolved) {
 
   const funds = Object.keys(ARCHIVE_FUNDS);
   const shuffledDescriptions = shuffle(funds);
-  const pairs = {};
-  let selectedFund = null;
+  const guesses = {}; // descOwner (fund the description really belongs to) -> fund name picked in its dropdown
 
   const scene = document.createElement('div');
   scene.className = 'scene';
@@ -29,6 +28,12 @@ export function renderRoom4(container, state, onSolved) {
   const subtitle = document.createElement('p');
   subtitle.className = 'poster-subtitle';
   subtitle.textContent = 'I fondi della Fondazione';
+
+  const instructions = document.createElement('p');
+  instructions.style.maxWidth = '560px';
+  instructions.style.textAlign = 'center';
+  instructions.style.fontSize = '15px';
+  instructions.textContent = 'Per ogni descrizione, scegli dal menu a quale fondo appartiene.';
 
   const fundsRow = document.createElement('div');
   fundsRow.style.display = 'flex';
@@ -46,74 +51,68 @@ export function renderRoom4(container, state, onSolved) {
   const error = document.createElement('div');
   error.className = 'lock-widget__error';
 
-  const fundCards = {};
-  const descCards = {};
-
   funds.forEach((fund) => {
     const card = document.createElement('div');
     card.className = 'btn';
-    card.style.cursor = 'pointer';
     card.textContent = fund;
-
-    card.addEventListener('click', () => {
-      selectedFund = fund;
-      Object.values(fundCards).forEach((c) => (c.style.outline = ''));
-      card.style.outline = '3px solid var(--navy)';
-    });
-
-    fundCards[fund] = card;
     fundsRow.appendChild(card);
   });
+
+  const descCards = {};
 
   shuffledDescriptions.forEach((descOwner) => {
     const descCard = document.createElement('div');
     descCard.className = 'modal';
-    descCard.style.cursor = 'pointer';
     descCard.style.padding = '12px 16px';
-    descCard.textContent = ARCHIVE_FUNDS[descOwner];
 
-    descCard.addEventListener('click', () => {
-      if (!selectedFund) {
-        error.textContent = 'Seleziona prima un fondo, poi la sua descrizione…';
-        return;
-      }
-      error.textContent = '';
-      pairs[selectedFund] = descOwner;
-      fundCards[selectedFund].style.outline = '';
-      selectedFund = null;
-      refreshDescHighlights();
+    const text = document.createElement('p');
+    text.style.margin = '0 0 10px';
+    text.textContent = ARCHIVE_FUNDS[descOwner];
+
+    const select = document.createElement('select');
+    select.className = 'lock-widget__input';
+    select.style.width = '100%';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Di quale fondo si tratta?';
+    select.appendChild(placeholder);
+
+    funds.forEach((fund) => {
+      const option = document.createElement('option');
+      option.value = fund;
+      option.textContent = fund;
+      select.appendChild(option);
+    });
+
+    select.addEventListener('change', () => {
+      guesses[descOwner] = select.value;
+      descCard.style.border = '';
     });
 
     descCards[descOwner] = descCard;
+    descCard.appendChild(text);
+    descCard.appendChild(select);
     descCol.appendChild(descCard);
   });
-
-  function refreshDescHighlights(showWrong = false) {
-    Object.values(descCards).forEach((card) => {
-      card.style.border = '';
-    });
-    Object.entries(pairs).forEach(([fund, owner]) => {
-      const card = descCards[owner];
-      if (!card) return;
-      const isCorrect = owner === fund;
-      card.style.border = showWrong && !isCorrect ? '2px solid #D64550' : '2px solid var(--giallo)';
-    });
-  }
 
   const verifyBtn = document.createElement('button');
   verifyBtn.className = 'btn';
   verifyBtn.textContent = 'Verifica';
   verifyBtn.addEventListener('click', () => {
-    if (isArchiveMatchComplete(pairs)) {
+    if (isArchiveMatchComplete(guesses)) {
       error.textContent = '';
-      refreshDescHighlights();
+      Object.values(descCards).forEach((card) => { card.style.border = ''; });
       const newState = collectLetter(state, 'archivio', 'I');
       saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {
       error.textContent = 'Qualche abbinamento non è giusto…';
-      refreshDescHighlights(true);
+      Object.entries(descCards).forEach(([descOwner, card]) => {
+        const isCorrect = guesses[descOwner] === descOwner;
+        card.style.border = isCorrect ? '2px solid var(--giallo)' : '2px solid #D64550';
+      });
     }
   });
 
@@ -121,6 +120,7 @@ export function renderRoom4(container, state, onSolved) {
 
   scene.appendChild(title);
   scene.appendChild(subtitle);
+  scene.appendChild(instructions);
   scene.appendChild(fundsRow);
   scene.appendChild(descCol);
   scene.appendChild(verifyBtn);

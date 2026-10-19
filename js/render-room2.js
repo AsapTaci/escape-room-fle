@@ -20,8 +20,7 @@ export function renderRoom2(container, state, onSolved) {
 
   const speakers = Object.keys(SPEAKER_QUOTES);
   const shuffledQuotes = shuffle(speakers);
-  const pairs = {}; // speaker -> chosen quote-owner
-  let selectedSpeaker = null;
+  const guesses = {}; // quoteOwner (the quote's real speaker) -> speaker name picked in that quote's dropdown
 
   const scene = document.createElement('div');
   scene.className = 'scene';
@@ -33,6 +32,12 @@ export function renderRoom2(container, state, onSolved) {
   const subtitle = document.createElement('p');
   subtitle.className = 'poster-subtitle';
   subtitle.textContent = 'Sala della Scuola di Liberalismo';
+
+  const instructions = document.createElement('p');
+  instructions.style.maxWidth = '560px';
+  instructions.style.textAlign = 'center';
+  instructions.style.fontSize = '15px';
+  instructions.textContent = 'Per ogni citazione, scegli dal menu chi pensi l’abbia detta.';
 
   const speakersRow = document.createElement('div');
   speakersRow.style.display = 'flex';
@@ -50,13 +55,9 @@ export function renderRoom2(container, state, onSolved) {
   const error = document.createElement('div');
   error.className = 'lock-widget__error';
 
-  const speakerCards = {};
-  const quoteCards = {};
-
   speakers.forEach((speaker) => {
     const card = document.createElement('div');
     card.style.textAlign = 'center';
-    card.style.cursor = 'pointer';
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar-circle';
@@ -70,65 +71,64 @@ export function renderRoom2(container, state, onSolved) {
 
     card.appendChild(avatar);
     card.appendChild(nameEl);
-    card.addEventListener('click', () => {
-      selectedSpeaker = speaker;
-      Object.values(speakerCards).forEach((c) => (c.style.outline = ''));
-      card.style.outline = `3px solid var(--giallo)`;
-    });
-
-    speakerCards[speaker] = card;
     speakersRow.appendChild(card);
   });
+
+  const quoteBorders = {};
 
   shuffledQuotes.forEach((quoteOwner) => {
     const quoteCard = document.createElement('div');
     quoteCard.className = 'modal';
-    quoteCard.style.cursor = 'pointer';
     quoteCard.style.padding = '12px 16px';
-    quoteCard.textContent = `"${SPEAKER_QUOTES[quoteOwner]}"`;
 
-    quoteCard.addEventListener('click', () => {
-      if (!selectedSpeaker) {
-        error.textContent = 'Seleziona prima un relatore, poi la sua citazione…';
-        return;
-      }
-      error.textContent = '';
-      pairs[selectedSpeaker] = quoteOwner;
-      speakerCards[selectedSpeaker].style.outline = '';
-      selectedSpeaker = null;
-      refreshQuoteHighlights();
+    const text = document.createElement('p');
+    text.style.margin = '0 0 10px';
+    text.textContent = `"${SPEAKER_QUOTES[quoteOwner]}"`;
+
+    const select = document.createElement('select');
+    select.className = 'lock-widget__input';
+    select.style.width = '100%';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Chi l’ha detta?';
+    select.appendChild(placeholder);
+
+    speakers.forEach((speaker) => {
+      const option = document.createElement('option');
+      option.value = speaker;
+      option.textContent = speaker;
+      select.appendChild(option);
     });
 
-    quoteCards[quoteOwner] = quoteCard;
+    select.addEventListener('change', () => {
+      guesses[quoteOwner] = select.value;
+      quoteCard.style.border = '';
+    });
+
+    quoteBorders[quoteOwner] = quoteCard;
+    quoteCard.appendChild(text);
+    quoteCard.appendChild(select);
     quotesCol.appendChild(quoteCard);
   });
-
-  function refreshQuoteHighlights(showWrong = false) {
-    Object.values(quoteCards).forEach((card) => {
-      card.style.border = '';
-    });
-    Object.entries(pairs).forEach(([speaker, owner]) => {
-      const card = quoteCards[owner];
-      if (!card) return;
-      const isCorrect = owner === speaker;
-      card.style.border = showWrong && !isCorrect ? '2px solid #D64550' : '2px solid var(--giallo)';
-    });
-  }
 
   const verifyBtn = document.createElement('button');
   verifyBtn.className = 'btn';
   verifyBtn.textContent = 'Verifica';
   verifyBtn.addEventListener('click', () => {
-    if (isQuoteMatchComplete(pairs)) {
+    if (isQuoteMatchComplete(guesses)) {
       error.textContent = '';
-      refreshQuoteHighlights();
+      Object.values(quoteBorders).forEach((card) => { card.style.border = ''; });
       const newState = collectLetter(state, 'scuola', 'L');
       saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {
       error.textContent = 'Qualche abbinamento non è giusto…';
-      refreshQuoteHighlights(true);
+      Object.entries(quoteBorders).forEach(([quoteOwner, card]) => {
+        const isCorrect = guesses[quoteOwner] === quoteOwner;
+        card.style.border = isCorrect ? '2px solid var(--giallo)' : '2px solid #D64550';
+      });
     }
   });
 
@@ -136,6 +136,7 @@ export function renderRoom2(container, state, onSolved) {
 
   scene.appendChild(title);
   scene.appendChild(subtitle);
+  scene.appendChild(instructions);
   scene.appendChild(speakersRow);
   scene.appendChild(quotesCol);
   scene.appendChild(verifyBtn);
