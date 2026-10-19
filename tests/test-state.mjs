@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createInitialState, loadState, saveState, collectLetter, isCodeMatch } from '../js/state.mjs';
+import { createInitialState, loadState, saveState, collectLetter, isCodeMatch, getSafeStorage, ROOM_SEQUENCE } from '../js/state.mjs';
 
 function fakeStorage(initial = {}) {
   const store = { ...initial };
@@ -52,3 +52,40 @@ assert.equal(brandNew.currentRoom, 'ingresso');
 assert.deepEqual(brandNew.lettersCollected, {});
 
 console.log('all resume integration tests passed');
+
+// final review fix: a storage whose methods throw must never crash loadState/saveState
+function throwingStorage() {
+  return {
+    getItem: () => { throw new Error('blocked'); },
+    setItem: () => { throw new Error('blocked'); },
+    removeItem: () => { throw new Error('blocked'); },
+  };
+}
+assert.deepEqual(loadState(throwingStorage()), createInitialState());
+assert.doesNotThrow(() => saveState(createInitialState(), throwingStorage()));
+
+// final review fix: parseable-but-wrong-shape saved state falls back cleanly
+assert.deepEqual(loadState(fakeStorage({ 'fle-escape-room-state': 'null' })), createInitialState());
+assert.deepEqual(loadState(fakeStorage({ 'fle-escape-room-state': '{}' })), createInitialState());
+assert.deepEqual(
+  loadState(fakeStorage({ 'fle-escape-room-state': JSON.stringify({ currentRoom: 'not-a-real-room', lettersCollected: {} }) })),
+  createInitialState()
+);
+assert.deepEqual(
+  loadState(fakeStorage({ 'fle-escape-room-state': JSON.stringify({ currentRoom: 'scuola' }) })),
+  createInitialState()
+);
+assert.deepEqual(
+  loadState(fakeStorage({ 'fle-escape-room-state': JSON.stringify({ currentRoom: 'scuola', lettersCollected: ['not', 'an', 'object'] }) })),
+  createInitialState()
+);
+assert.ok(ROOM_SEQUENCE.includes('scuola'));
+
+// final review fix: getSafeStorage never throws even with no window/localStorage (this Node process has neither)
+const safe = getSafeStorage();
+assert.equal(typeof safe.getItem, 'function');
+assert.equal(typeof safe.setItem, 'function');
+safe.setItem('k', 'v');
+assert.equal(safe.getItem('k'), 'v');
+
+console.log('all final-review hardening tests passed');

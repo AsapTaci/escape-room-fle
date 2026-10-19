@@ -1,5 +1,5 @@
 import { SPEAKER_QUOTES, isQuoteMatchComplete } from './room2.mjs';
-import { collectLetter, saveState } from './state.mjs';
+import { collectLetter, saveState, getSafeStorage } from './state.mjs';
 import { renderLetterTray } from './ui.mjs';
 
 function initials(name) {
@@ -88,16 +88,32 @@ export function renderRoom2(container, state, onSolved) {
     quoteCard.textContent = `"${SPEAKER_QUOTES[quoteOwner]}"`;
 
     quoteCard.addEventListener('click', () => {
-      if (!selectedSpeaker) return;
+      if (!selectedSpeaker) {
+        error.textContent = 'Seleziona prima un relatore, poi la sua citazione…';
+        return;
+      }
+      error.textContent = '';
       pairs[selectedSpeaker] = quoteOwner;
-      quoteCard.style.border = '2px solid var(--giallo)';
       speakerCards[selectedSpeaker].style.outline = '';
       selectedSpeaker = null;
+      refreshQuoteHighlights();
     });
 
     quoteCards[quoteOwner] = quoteCard;
     quotesCol.appendChild(quoteCard);
   });
+
+  function refreshQuoteHighlights(showWrong = false) {
+    Object.values(quoteCards).forEach((card) => {
+      card.style.border = '';
+    });
+    Object.entries(pairs).forEach(([speaker, owner]) => {
+      const card = quoteCards[owner];
+      if (!card) return;
+      const isCorrect = owner === speaker;
+      card.style.border = showWrong && !isCorrect ? '2px solid #D64550' : '2px solid var(--giallo)';
+    });
+  }
 
   const verifyBtn = document.createElement('button');
   verifyBtn.className = 'btn';
@@ -105,12 +121,14 @@ export function renderRoom2(container, state, onSolved) {
   verifyBtn.addEventListener('click', () => {
     if (isQuoteMatchComplete(pairs)) {
       error.textContent = '';
+      refreshQuoteHighlights();
       const newState = collectLetter(state, 'scuola', 'L');
-      saveState(newState, localStorage);
+      saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {
       error.textContent = 'Qualche abbinamento non è giusto…';
+      refreshQuoteHighlights(true);
     }
   });
 

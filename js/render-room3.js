@@ -1,5 +1,5 @@
 import { PRESIDENT_ORDER, isPresidentOrderCorrect } from './room3.mjs';
-import { collectLetter, saveState } from './state.mjs';
+import { collectLetter, saveState, getSafeStorage } from './state.mjs';
 import { renderLetterTray } from './ui.mjs';
 
 function shuffle(array) {
@@ -88,7 +88,7 @@ export function renderRoom3(container, state, onSolved) {
     if (isPresidentOrderCorrect(order)) {
       error.textContent = '';
       const newState = collectLetter(state, 'presidenti', 'U');
-      saveState(newState, localStorage);
+      saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {

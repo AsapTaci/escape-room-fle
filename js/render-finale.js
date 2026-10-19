@@ -1,10 +1,11 @@
 import { FINAL_CODE } from './finale.mjs';
 import { renderLockWidget, renderLetterTray } from './ui.mjs';
+import { getSafeStorage } from './state.mjs';
 
 const VISION_TEXT =
   'Si impegna perché ogni cittadino sia in condizione di vivere, di crescere, di rapportarsi con gli altri e di prosperare in pace, attraverso il riconoscimento delle diversità, la difesa delle libertà individuali e della dignità umana, la promozione del confronto libero e costruttivo sui fatti e le idee.';
 
-function renderVictory(container) {
+export function renderVictory(container) {
   container.innerHTML = '';
 
   const scene = document.createElement('div');
@@ -26,6 +27,19 @@ function renderVictory(container) {
   vision.style.lineHeight = '1.6';
   vision.textContent = VISION_TEXT;
 
+  const restartBtn = document.createElement('button');
+  restartBtn.className = 'btn';
+  restartBtn.textContent = 'Ricomincia';
+  restartBtn.style.marginTop = '8px';
+  restartBtn.addEventListener('click', () => {
+    try {
+      getSafeStorage().removeItem('fle-escape-room-state');
+    } catch {
+      // ignore: worst case the next load just resumes from here
+    }
+    location.reload();
+  });
+
   const logo = document.createElement('img');
   logo.className = 'logo-fe';
   logo.src = 'assets/logo.png';
@@ -34,6 +48,7 @@ function renderVictory(container) {
   scene.appendChild(title);
   scene.appendChild(subtitle);
   scene.appendChild(vision);
+  scene.appendChild(restartBtn);
   scene.appendChild(logo);
   container.appendChild(scene);
 }
@@ -73,7 +88,7 @@ export function renderFinale(container, state, onSolved) {
   renderLockWidget({
     code: FINAL_CODE,
     onSuccess: () => {
-      onSolved(state);
+      onSolved({ ...state, completed: true });
       renderVictory(container);
     },
     container: lockContainer,

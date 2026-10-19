@@ -4,10 +4,8 @@ import { renderRoom3 } from './render-room3.js';
 import { renderRoom4 } from './render-room4.js';
 import { renderRoom5 } from './render-room5.js';
 import { renderRoom6 } from './render-room6.js';
-import { renderFinale } from './render-finale.js';
-import { loadState, saveState } from './state.mjs';
-
-const ROOM_SEQUENCE = ['ingresso', 'scuola', 'presidenti', 'archivio', 'biblioteca', 'mappa', 'finale'];
+import { renderFinale, renderVictory } from './render-finale.js';
+import { loadState, saveState, getSafeStorage, ROOM_SEQUENCE } from './state.mjs';
 
 const ROOM_RENDERERS = {
   ingresso: renderRoom1,
@@ -30,11 +28,11 @@ function renderCurrentRoom(container, state) {
   renderer(container, state, (newState) => {
     if (isFinale) {
       // renderFinale already shows the victory screen itself.
-      saveState(newState, localStorage);
+      saveState(newState, getSafeStorage());
       return;
     }
     const advancedState = { ...newState, currentRoom: nextRoomAfter(state.currentRoom) };
-    saveState(advancedState, localStorage);
+    saveState(advancedState, getSafeStorage());
     renderCurrentRoom(container, advancedState);
   });
 }
@@ -74,9 +72,11 @@ function renderIntro(container, state) {
 }
 
 const app = document.getElementById('app');
-const initialState = loadState(localStorage);
+const initialState = loadState(getSafeStorage());
 
-if (initialState.currentRoom === 'ingresso') {
+if (initialState.completed) {
+  renderVictory(app);
+} else if (initialState.currentRoom === 'ingresso') {
   renderIntro(app, initialState);
 } else {
   renderCurrentRoom(app, initialState);

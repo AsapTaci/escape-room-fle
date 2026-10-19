@@ -1,5 +1,5 @@
 import { LIBRARY_FACTS, isLibraryMatchComplete } from './room5.mjs';
-import { collectLetter, saveState } from './state.mjs';
+import { collectLetter, saveState, getSafeStorage } from './state.mjs';
 import { renderLetterTray } from './ui.mjs';
 
 function shuffle(array) {
@@ -52,6 +52,7 @@ export function renderRoom5(container, state, onSolved) {
   error.className = 'lock-widget__error';
 
   const labelCards = {};
+  const valueCards = {};
 
   labels.forEach((label) => {
     const card = document.createElement('div');
@@ -79,28 +80,50 @@ export function renderRoom5(container, state, onSolved) {
     valueCard.textContent = LIBRARY_FACTS[valueOwner];
 
     valueCard.addEventListener('click', () => {
-      if (!selectedLabel) return;
-      pairs[selectedLabel] = LIBRARY_FACTS[valueOwner];
-      valueCard.style.border = '2px solid var(--giallo)';
+      if (!selectedLabel) {
+        error.textContent = 'Seleziona prima un’etichetta, poi il suo valore…';
+        return;
+      }
+      error.textContent = '';
+      pairs[selectedLabel] = valueOwner;
       labelCards[selectedLabel].style.outline = '';
       selectedLabel = null;
+      refreshValueHighlights();
     });
 
+    valueCards[valueOwner] = valueCard;
     valuesRow.appendChild(valueCard);
   });
+
+  function refreshValueHighlights(showWrong = false) {
+    Object.values(valueCards).forEach((card) => {
+      card.style.border = '';
+    });
+    Object.entries(pairs).forEach(([label, owner]) => {
+      const card = valueCards[owner];
+      if (!card) return;
+      const isCorrect = owner === label;
+      card.style.border = showWrong && !isCorrect ? '2px solid #D64550' : '2px solid var(--giallo)';
+    });
+  }
 
   const verifyBtn = document.createElement('button');
   verifyBtn.className = 'btn';
   verifyBtn.textContent = 'Verifica';
   verifyBtn.addEventListener('click', () => {
-    if (isLibraryMatchComplete(pairs)) {
+    const valueMapping = Object.fromEntries(
+      Object.entries(pairs).map(([label, owner]) => [label, LIBRARY_FACTS[owner]])
+    );
+    if (isLibraryMatchComplete(valueMapping)) {
       error.textContent = '';
+      refreshValueHighlights();
       const newState = collectLetter(state, 'biblioteca', 'G');
-      saveState(newState, localStorage);
+      saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {
       error.textContent = 'Qualche abbinamento non è giusto…';
+      refreshValueHighlights(true);
     }
   });
 

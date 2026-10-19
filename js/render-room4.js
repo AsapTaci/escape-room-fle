@@ -1,5 +1,5 @@
 import { ARCHIVE_FUNDS, isArchiveMatchComplete } from './room4.mjs';
-import { collectLetter, saveState } from './state.mjs';
+import { collectLetter, saveState, getSafeStorage } from './state.mjs';
 import { renderLetterTray } from './ui.mjs';
 
 function shuffle(array) {
@@ -47,6 +47,7 @@ export function renderRoom4(container, state, onSolved) {
   error.className = 'lock-widget__error';
 
   const fundCards = {};
+  const descCards = {};
 
   funds.forEach((fund) => {
     const card = document.createElement('div');
@@ -72,15 +73,32 @@ export function renderRoom4(container, state, onSolved) {
     descCard.textContent = ARCHIVE_FUNDS[descOwner];
 
     descCard.addEventListener('click', () => {
-      if (!selectedFund) return;
+      if (!selectedFund) {
+        error.textContent = 'Seleziona prima un fondo, poi la sua descrizione…';
+        return;
+      }
+      error.textContent = '';
       pairs[selectedFund] = descOwner;
-      descCard.style.border = '2px solid var(--giallo)';
       fundCards[selectedFund].style.outline = '';
       selectedFund = null;
+      refreshDescHighlights();
     });
 
+    descCards[descOwner] = descCard;
     descCol.appendChild(descCard);
   });
+
+  function refreshDescHighlights(showWrong = false) {
+    Object.values(descCards).forEach((card) => {
+      card.style.border = '';
+    });
+    Object.entries(pairs).forEach(([fund, owner]) => {
+      const card = descCards[owner];
+      if (!card) return;
+      const isCorrect = owner === fund;
+      card.style.border = showWrong && !isCorrect ? '2px solid #D64550' : '2px solid var(--giallo)';
+    });
+  }
 
   const verifyBtn = document.createElement('button');
   verifyBtn.className = 'btn';
@@ -88,12 +106,14 @@ export function renderRoom4(container, state, onSolved) {
   verifyBtn.addEventListener('click', () => {
     if (isArchiveMatchComplete(pairs)) {
       error.textContent = '';
+      refreshDescHighlights();
       const newState = collectLetter(state, 'archivio', 'I');
-      saveState(newState, localStorage);
+      saveState(newState, getSafeStorage());
       renderLetterTray(newState.lettersCollected, trayEl);
       onSolved(newState);
     } else {
       error.textContent = 'Qualche abbinamento non è giusto…';
+      refreshDescHighlights(true);
     }
   });
 

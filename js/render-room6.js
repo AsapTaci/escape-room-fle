@@ -1,5 +1,5 @@
 import { CORRECT_PINS, DECOY_PINS, PIN_ADDRESSES, isMapComplete } from './room6.mjs';
-import { collectLetter, saveState } from './state.mjs';
+import { collectLetter, saveState, getSafeStorage } from './state.mjs';
 import { renderLetterTray } from './ui.mjs';
 
 // Approximate relative positions (percent of map width/height) for a
@@ -39,6 +39,15 @@ export function renderRoom6(container, state, onSolved) {
   map.style.border = '1px solid var(--azzurro)';
   map.style.borderRadius = '12px';
   map.style.margin = '16px 0';
+  // A stylized (not cartographically precise) silhouette of Italy, so the
+  // map reads as a map and not a grid of unrelated dots.
+  map.innerHTML = `
+    <svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
+      <path d="M33,4 L44,7 L52,4 L60,10 L56,18 L64,23 L59,32 L66,37 L61,47 L66,54 L58,60 L61,67 L53,73 L49,82 L46,89 L41,88 L39,79 L42,69 L36,61 L39,51 L33,44 L36,34 L30,27 L34,17 Z"
+        fill="rgba(79,125,176,0.25)" stroke="var(--azzurro)" stroke-width="1"/>
+      <ellipse cx="42" cy="94" rx="6" ry="4" fill="rgba(79,125,176,0.25)" stroke="var(--azzurro)" stroke-width="1"/>
+    </svg>
+  `;
 
   const info = document.createElement('div');
   info.style.minHeight = '24px';
@@ -73,7 +82,7 @@ export function renderRoom6(container, state, onSolved) {
 
         if (isMapComplete(found)) {
           const newState = collectLetter(state, 'mappa', 'I');
-          saveState(newState, localStorage);
+          saveState(newState, getSafeStorage());
           renderLetterTray(newState.lettersCollected, trayEl);
           onSolved(newState);
         }

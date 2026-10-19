@@ -225,7 +225,11 @@ build", solo file statici referenziati da percorso relativo.
   "Liberale è…" reali: Fornero (12 marzo), Mingardi (19 marzo), Floridi (23
   aprile), Feltri (26 marzo), De Nicola (16 aprile) (pagina "Scuola di
   Liberalismo").
-- Sedi secondarie: Napoli, Trieste, Milano, Capo d'Orlando/Augusta (Sicilia),
-  Firenze, con indirizzi completi (pagina "Contatti").
+- Sedi secondarie, indirizzi verbatim dalla pagina "Contatti":
+  - Campania: Via Miguel De Cervantes Saavedra, 52 — 80133 Napoli
+  - Friuli-Venezia Giulia: Viale Miramare, 23 — 34135 Trieste
+  - Lombardia: Corso Monforte, 15 — 20122 Milano
+  - Sicilia: Ex Strada Comunale Procaccia s.n.c. — 98071 Capo d'Orlando (ME)
+  - Toscana: Via Lamarmora, 53 — 50121 Firenze
 - Stile grafico: skill `~/.claude/skills/Fleinaudi/SKILL.md` (font, palette,
   trattamento foto, logo, cerchietti per le persone).
