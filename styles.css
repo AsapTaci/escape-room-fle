@@ -1,0 +1,235 @@
+:root {
+  --navy: #0C2454;
+  --blue: #0C3C6C;
+  --azzurro: #4F7DB0;
+  --nero: #04070F;
+  --giallo: #F2B705;
+  --bianco: #FFFFFF;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--nero);
+  color: var(--bianco);
+  font-family: 'Montserrat', sans-serif;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background-size: cover;
+  background-position: center;
+}
+
+.scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4,7,15,0.55) 0%, rgba(4,7,15,0.85) 70%, rgba(4,7,15,1) 100%),
+    linear-gradient(0deg, rgba(12,36,84,0.75), rgba(12,36,84,0.75));
+  z-index: 0;
+}
+
+.scene > * {
+  position: relative;
+  z-index: 1;
+}
+
+.poster-title {
+  font-family: 'Fira Sans Extra Condensed', sans-serif;
+  font-weight: 800;
+  font-size: clamp(42px, 8vw, 96px);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--bianco);
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.poster-subtitle {
+  font-family: 'Fira Sans Condensed', sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 4vw, 32px);
+  color: var(--azzurro);
+  text-align: center;
+  margin: 0 0 32px;
+}
+
+.btn {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--nero);
+  background: var(--giallo);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 40px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(242, 183, 5, 0.35);
+}
+
+.logo-fe {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  height: 36px;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  z-index: 1;
+}
+
+/* Lock widget */
+.lock-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.lock-widget__row {
+  display: flex;
+  gap: 10px;
+}
+
+.lock-widget__input {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid var(--azzurro);
+  background: rgba(255,255,255,0.06);
+  color: var(--bianco);
+  width: 220px;
+}
+
+.lock-widget__input:focus {
+  outline: none;
+  border-color: var(--giallo);
+}
+
+.lock-widget__error {
+  color: var(--giallo);
+  font-size: 15px;
+  min-height: 20px;
+}
+
+/* Letter tray */
+.letter-tray {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 50;
+}
+
+.letter-tray__slot {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--azzurro);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  background: rgba(12,36,84,0.85);
+}
+
+.letter-tray__slot--filled {
+  border-color: var(--giallo);
+  color: var(--giallo);
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4,7,15,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--navy);
+  border: 1px solid var(--azzurro);
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 480px;
+  text-align: left;
+}
+
+.modal h3 {
+  font-family: 'Fira Sans Condensed', sans-serif;
+  color: var(--azzurro);
+  margin-top: 0;
+}
+
+.modal .btn { margin-top: 16px; }
+
+/* Avatar circles */
+.avatar-circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue);
+  border: 2px solid var(--azzurro);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--bianco);
+  overflow: hidden;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.person-name {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.person-name .surname {
+  font-weight: 700;
+}
+
+.person-name .firstname {
+  font-weight: 300;
+}
