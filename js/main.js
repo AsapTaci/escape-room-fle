@@ -1,4 +1,5 @@
 import { renderRoom1 } from './render-room1.js';
+import { createInitialState } from './state.mjs';
 
 function renderIntro(container) {
   container.innerHTML = '';
@@ -19,7 +20,7 @@ function renderIntro(container) {
   startBtn.className = 'btn';
   startBtn.textContent = 'Comincia';
   startBtn.addEventListener('click', () => {
-    renderRoom1(container, () => console.log('ingresso solved'));
+    renderRoom1(container, createInitialState(), (s) => console.log('ingresso solved', s));
   });
 
   const logo = document.createElement('img');

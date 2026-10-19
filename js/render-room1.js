@@ -1,7 +1,7 @@
 import { INGRESSO_CODE } from './room1.mjs';
 import { renderLockWidget, renderModal } from './ui.mjs';
 
-export function renderRoom1(container, onSolved) {
+export function renderRoom1(container, state, onSolved) {
   container.innerHTML = '';
 
   const scene = document.createElement('div');
@@ -41,5 +41,5 @@ export function renderRoom1(container, onSolved) {
   scene.appendChild(logo);
   container.appendChild(scene);
 
-  renderLockWidget({ code: INGRESSO_CODE, onSuccess: onSolved, container: lockContainer });
+  renderLockWidget({ code: INGRESSO_CODE, onSuccess: () => onSolved(state), container: lockContainer });
 }
